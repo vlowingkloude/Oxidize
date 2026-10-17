@@ -55,6 +55,7 @@ export function EditorArea({
   const [problemsOpen, setProblemsOpen] = useState(false);
   const [formatOnSave, setFormatOnSave] = useState(() => window.localStorage.getItem("oxidize.formatOnSave") === "true");
   const [autoSave, setAutoSave] = useState(() => window.localStorage.getItem("oxidize.autoSave") === "true");
+  const [wordWrap, setWordWrap] = useState(() => window.localStorage.getItem("oxidize.wordWrap") !== "false");
   const language = activeDocument ? languageForPath(activeDocument.path) : "plaintext";
   const allDiagnostics = useMemo(() => Object.values(diagnostics).flat(), [diagnostics]);
   const lspStatus = lspStatuses[language] ?? "closed";
@@ -239,6 +240,7 @@ export function EditorArea({
             <div className="editorMeta">
               {supportsLsp(language) && activeDocument.kind === "text" ? <span className={`lspStatus ${lspStatus}`}>{language}: {lspStatus}</span> : null}
               {allDiagnostics.length ? <button type="button" onClick={() => setProblemsOpen((value) => !value)}><ListChecks size={14} /> {allDiagnostics.length} Problems</button> : null}
+              <label className="saveOption" title="Wrap long lines at the editor width"><input type="checkbox" checked={wordWrap} onChange={(event) => { setWordWrap(event.target.checked); window.localStorage.setItem("oxidize.wordWrap", String(event.target.checked)); }} /> Wrap</label>
               <label className="saveOption" title="Automatically save one second after typing"><input type="checkbox" checked={autoSave} onChange={(event) => { setAutoSave(event.target.checked); window.localStorage.setItem("oxidize.autoSave", String(event.target.checked)); }} /> Auto</label>
               <label className="saveOption" title="Format with the language server before saving"><input type="checkbox" checked={formatOnSave} onChange={(event) => { setFormatOnSave(event.target.checked); window.localStorage.setItem("oxidize.formatOnSave", String(event.target.checked)); }} /> Format on save</label>
               {supportsLsp(language) && activeDocument.kind === "text" ? <button type="button" onClick={formatActive} disabled={lspStatus !== "ready"} title="Format document (Shift+Alt+F)"><Sparkles size={14} /> Format</button> : null}
@@ -274,7 +276,7 @@ export function EditorArea({
                   automaticLayout: true, fontFamily: "'JetBrains Mono', 'SFMono-Regular', Consolas, monospace",
                   fontSize: 14, lineHeight: 22, minimap: { enabled: true, scale: 1 }, padding: { top: activeDocument.externalChanged ? 43 : 10 },
                   scrollBeyondLastLine: false, smoothScrolling: true, bracketPairColorization: { enabled: true },
-                  guides: { bracketPairs: true, indentation: true }, renderWhitespace: "selection", wordWrap: "off"
+                  guides: { bracketPairs: true, indentation: true }, renderWhitespace: "selection", wordWrap: wordWrap ? "on" : "off"
                 }}
               />
             ) : null}
